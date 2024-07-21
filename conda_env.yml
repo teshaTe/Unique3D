@@ -14,6 +14,6 @@ dependencies:
   - mesa-libegl-devel-cos7-x86_64=18.3.4
   - mesa-libgl-devel-cos7-x86_64=18.3.4
   - libglvnd-devel-cos7-x86_64=1.0.1
-  - libnvinfer=8.6.1.6
+  - libnvinfer
   - pip:
       - -r requirements.txt
