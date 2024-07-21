@@ -60,5 +60,6 @@ if __name__ == '__main__':
 
     snapshot_download(repo_id="Wuvin/Unique3D", local_dir=checkpoint_dir, repo_type="space")
     delete_all_subfolders(checkpoint_dir, "ckpt")
-    move_contents_to_parent(checkpoint_dir)
+    dir_to_move = os.path.join(checkpoint_dir, "ckpt")
+    move_contents_to_parent(dir_to_move)
 
