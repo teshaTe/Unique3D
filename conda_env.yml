@@ -11,9 +11,11 @@ dependencies:
   - cuda-toolkit=12.1
   - cudnn=8.9
   - libglib=2.80.3
-  - mesa-libegl-devel-cos7-x86_64=18.3.4
-  - mesa-libgl-devel-cos7-x86_64=18.3.4
-  - libglvnd-devel-cos7-x86_64=1.0.1
+  - mesa-libegl-devel-cos7-x86_64
+  - mesa-libgl-devel-cos7-x86_64
+  - libglvnd-devel-cos7-x86_64
+  - mesa-libgles-devel-cos6-x86_64
   - libnvinfer
+  - ninja
   - pip:
       - -r requirements.txt
