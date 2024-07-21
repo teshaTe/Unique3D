@@ -40,7 +40,7 @@ def model_from_ckpt_or_pretrained(ckpt_or_pretrained, model_cls, original_config
 def load_base_model_components(base_model=DEFAULT_BASE_MODEL, torch_dtype=torch.float16):
     model_kwargs = dict(
         torch_dtype=torch_dtype,
-        requires_safety_checker=False, 
+        requires_safety_checker=False,
         safety_checker=None,
     )
     pipe: StableDiffusionPipeline = model_from_ckpt_or_pretrained(
@@ -48,7 +48,7 @@ def load_base_model_components(base_model=DEFAULT_BASE_MODEL, torch_dtype=torch.
         StableDiffusionPipeline,
         **model_kwargs
     )
-    pipe.to("cpu")
+    pipe.to("cuda")
     return pipe.components
 
 @cache_model
@@ -67,28 +67,28 @@ def load_image_encoder():
 
 def load_common_sd15_pipe(base_model=DEFAULT_BASE_MODEL, device="auto", controlnet=None, ip_adapter=False, plus_model=True, torch_dtype=torch.float16, model_cpu_offload_seq=None, enable_sequential_cpu_offload=False, vae_slicing=False, pipeline_class=None, **kwargs):
     model_kwargs = dict(
-        torch_dtype=torch_dtype, 
+        torch_dtype=torch_dtype,
         device_map=device,
-        requires_safety_checker=False, 
+        requires_safety_checker=False,
         safety_checker=None,
     )
     components = load_base_model_components(base_model=base_model, torch_dtype=torch_dtype)
     model_kwargs.update(components)
     model_kwargs.update(kwargs)
-    
+
     if controlnet is not None:
         if isinstance(controlnet, list):
             controlnet = [load_controlnet(controlnet_path, torch_dtype=torch_dtype) for controlnet_path in controlnet]
         else:
             controlnet = load_controlnet(controlnet, torch_dtype=torch_dtype)
         model_kwargs.update(controlnet=controlnet)
-    
+
     if pipeline_class is None:
         if controlnet is not None:
             pipeline_class = StableDiffusionControlNetPipeline
         else:
             pipeline_class = StableDiffusionPipeline
-    
+
     pipe: StableDiffusionPipeline = model_from_ckpt_or_pretrained(
         base_model,
         pipeline_class,
@@ -105,7 +105,7 @@ def load_common_sd15_pipe(base_model=DEFAULT_BASE_MODEL, device="auto", controln
         pipe.set_ip_adapter_scale(1.0)
     else:
         pipe.unload_ip_adapter()
-    
+
     pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
 
     if model_cpu_offload_seq is None:
@@ -115,7 +115,7 @@ def load_common_sd15_pipe(base_model=DEFAULT_BASE_MODEL, device="auto", controln
             pipe.model_cpu_offload_seq = "text_encoder->controlnet->vae->unet->vae"
     else:
         pipe.model_cpu_offload_seq = model_cpu_offload_seq
-    
+
     if enable_sequential_cpu_offload:
         pipe.enable_sequential_cpu_offload()
     else:
@@ -124,7 +124,7 @@ def load_common_sd15_pipe(base_model=DEFAULT_BASE_MODEL, device="auto", controln
         # pipe.enable_model_cpu_offload()
     if vae_slicing:
         pipe.enable_vae_slicing()
-        
+
     import gc
     gc.collect()
     return pipe
