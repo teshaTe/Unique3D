@@ -1,0 +1,19 @@
+name: unique-3d-env
+channels:
+  - defaults
+  - conda-forge
+  - nvidia
+  - tongyuantongyu
+
+dependencies:
+  - python=3.10
+  - pip
+  - cuda-toolkit=12.1
+  - cudnn=8.9
+  - libglib=2.80.3
+  - mesa-libegl-devel-cos7-x86_64=18.3.4
+  - mesa-libgl-devel-cos7-x86_64=18.3.4
+  - libglvnd-devel-cos7-x86_64=1.0.1
+  - libnvinfer=8.6.1.6
+  - pip:
+      - -r requirements.txt
