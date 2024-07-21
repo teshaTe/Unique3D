@@ -14,13 +14,15 @@ def delete_all_subfolders(directory, keep_directory):
         item_path = os.path.join(directory, item)
 
         # If the item is a directory, delete it
-        if ((os.path.isdir(item_path) or os.path.isfile(item_path)) and
+        if ((os.path.isdir(item_path)) and
             (keep_directory not in item_path)):
             try:
                 shutil.rmtree(item_path)
                 print(f"Deleted folder: {item_path}")
             except Exception as e:
                 print(f"Failed to delete {item_path}. Reason: {e}")
+        elif os.path.isfile(item_path):
+            os.remove(item_path)
         else:
             print(f"Skipping non-folder/selected to keep item: {item_path}")
 
