@@ -14,7 +14,6 @@ dependencies:
   - mesa-libegl-devel-cos7-x86_64
   - mesa-libgl-devel-cos7-x86_64
   - libglvnd-devel-cos7-x86_64
-  - mesa-libgles-devel-cos6-x86_64
   - libnvinfer
   - ninja
   - pip:
