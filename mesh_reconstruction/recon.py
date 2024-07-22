@@ -31,10 +31,11 @@ def reconstruct_stage1(pils: List[Image.Image], steps=100, vertices=None, faces=
     for i in tqdm(range(steps)):
         opt.zero_grad()
         opt._lr *= decay
-        normals = calc_vertex_normals(vertices,faces)
-        images = renderer.render(vertices,normals,faces)
+        normals = calc_vertex_normals(vertices, faces)
+        images = renderer.render(vertices, normals, faces)
 
-        loss_expand = 0.5 * ((vertices+normals).detach() - vertices).pow(2).mean()
+        # loss_expand = 0.5 * ((vertices+normals).detach() - vertices).pow(2).mean()
+        loss_expand = 0.5 * ((vertices+normals) - vertices).pow(2).mean()
 
         t_mask = images[..., -1] > 0.5
         loss_target_l2 = (images[t_mask] - target_images[t_mask]).abs().pow(2).mean()
@@ -46,11 +47,9 @@ def reconstruct_stage1(pils: List[Image.Image], steps=100, vertices=None, faces=
         loss_oob = (vertices.abs() > 0.99).float().mean() * 10
         loss = loss + loss_oob
 
-        with torch.no_grad():
-            loss.backward()
-
+        loss.backward()
         opt.step()
-        vertices,faces = opt.remesh(poisson=False)
+        vertices, faces = opt.remesh(poisson=False)
 
     vertices, faces = vertices.detach(), faces.detach()
 
