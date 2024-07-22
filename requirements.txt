@@ -22,3 +22,4 @@ typeguard==2.13.3
 wandb==0.16.6
 cuda-python==12.5.0
 onnx==1.16.0
+ninja
