@@ -4,6 +4,7 @@ channels:
   - conda-forge
   - nvidia
   - tongyuantongyu
+  - declaracad
 
 dependencies:
   - python=3.10
@@ -13,7 +14,9 @@ dependencies:
   - libglib=2.80.3
   - mesa-libegl-devel-cos7-x86_64
   - mesa-libgl-devel-cos7-x86_64
+  - mesa-libgles-devel-cos6-x86_64
   - libglvnd-devel-cos7-x86_64
+  - libglvnd-opengl-cos7-x86_64
   - libnvinfer
   - ninja
   - pip:
