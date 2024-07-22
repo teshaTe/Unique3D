@@ -23,6 +23,9 @@ if __name__ == '__main__':
     remove_background = True
 
     model_zoo.init_models()
-    mesh, video = generate3dv2(image_name, remove_background, 42)
+    output_path = os.path.join(os.curdir, "output")
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+    mesh, video = generate3dv2(image_name, remove_background, 42, save_path=output_path)
 
 
