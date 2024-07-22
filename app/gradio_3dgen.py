@@ -9,7 +9,7 @@ from scripts.refine_lr_to_sr import run_sr_fast
 from scripts.utils import save_glb_and_video
 from scripts.multiview_inference import geo_reconstruct
 
-def generate3dv2(preview_img, input_processing, seed, render_video=True, do_refine=True, expansion_weight=0.1, init_type="std", save_path=""):
+def generate3dv2(preview_img, input_processing, seed, render_video=True, do_refine=True, expansion_weight=0.1, init_type="std", save_path="/tmp/gradio/generated"):
     if preview_img is None:
         raise gr.Error("preview_img is none")
     if isinstance(preview_img, str):
