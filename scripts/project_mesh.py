@@ -46,7 +46,7 @@ def render_pix2faces_py3d(meshes, cameras, H=512, W=512, blur_radius=0.0, faces_
         faces_per_pixel=faces_per_pixel
     )
     rasterizer=MeshRasterizer(
-        cameras=cameras, 
+        cameras=cameras,
         raster_settings=raster_settings
     )
     fragments: Fragments = rasterizer(meshes, cameras=cameras)
@@ -67,7 +67,8 @@ def _warmup(glctx, device=None):
 
 class Pix2FacesRenderer:
     def __init__(self, device="cuda"):
-        self._glctx = dr.RasterizeGLContext(output_db=False, device=device)
+        # self._glctx = dr.RasterizeGLContext(output_db=False, device=device)
+        self._glctx = dr.RasterizeCUDAContext(device=device)
         self.device = device
         _warmup(self._glctx, device)
 
@@ -161,7 +162,7 @@ def project_color(meshes: Meshes, cameras: CamerasBase, pil_image: Image.Image, 
     old_colors = meshes.textures.verts_features_packed()
     old_colors[valid_idx] = valid_color * alpha + old_colors[valid_idx] * (1 - alpha)
     new_texture = TexturesVertex(verts_features=[old_colors])
-    
+
     valid_verts_normals = meshes.verts_normals_packed()[valid_idx]
     valid_verts_normals = valid_verts_normals / valid_verts_normals.norm(dim=1, keepdim=True).clamp_min(0.001)
     cos_angles = (valid_verts_normals * view_direction).sum(dim=1)
@@ -181,11 +182,11 @@ def complete_unseen_vertex_color(meshes: Meshes, valid_index: torch.Tensor) -> d
     valid_index = valid_index.to(meshes.device)
     colors = meshes.textures.verts_features_packed()    # [V, 3]
     V = colors.shape[0]
-    
+
     invalid_index = torch.ones_like(colors[:, 0]).bool()    # [V]
     invalid_index[valid_index] = False
     invalid_index = torch.arange(V).to(meshes.device)[invalid_index]
-    
+
     L = meshes.laplacian_packed()
     E = torch.sparse_coo_tensor(torch.tensor([list(range(V))] * 2), torch.ones((V,)), size=(V, V)).to(meshes.device)
     L = L + E
@@ -194,7 +195,7 @@ def complete_unseen_vertex_color(meshes: Meshes, valid_index: torch.Tensor) -> d
     colored_count = torch.ones_like(colors[:, 0])   # [V]
     colored_count[invalid_index] = 0
     L_invalid = torch.index_select(L, 0, invalid_index)    # sparse [IV, V]
-    
+
     total_colored = colored_count.sum()
     coloring_round = 0
     stage = "uncolored"
@@ -205,7 +206,7 @@ def complete_unseen_vertex_color(meshes: Meshes, valid_index: torch.Tensor) -> d
         new_count = torch.matmul(L_invalid, colored_count)[:, None]             # [IV, 1]
         colors[invalid_index] = torch.where(new_count > 0, new_color / new_count, colors[invalid_index])
         colored_count[invalid_index] = (new_count[:, 0] > 0).float()
-        
+
         new_total_colored = colored_count.sum()
         if new_total_colored > total_colored:
             total_colored = new_total_colored
@@ -267,7 +268,7 @@ def multiview_color_projection(meshes: Meshes, image_list: List[Image.Image], ca
             weights = [1.0, 1.0]
         else:
             raise ValueError("weights is None, and can not be guessed from image_list")
-    
+
     # 2. run projection
     meshes = meshes.clone().to(device)
     if weights is None:
@@ -303,7 +304,7 @@ def multiview_color_projection(meshes: Meshes, image_list: List[Image.Image], ca
         raise ValueError(f"below_confidence_strategy={below_confidence_strategy} is not supported")
     assert not torch.isnan(texture_values).any()
     meshes.textures = TexturesVertex(verts_features=[texture_values])
-    
+
     if complete_unseen:
         meshes = complete_unseen_vertex_color(meshes, torch.arange(texture_values.shape[0]).to(device)[texture_counts[:, 0] >= confidence_threshold])
     ret_mesh = meshes.detach()
@@ -350,7 +351,7 @@ def align_with_alpha_bbox(source_img, target_img, final_size=1024):
     source_content = Image.fromarray(source_content).resize((bbox_target_max[1]-bbox_target_min[1]+1, bbox_target_max[0]-bbox_target_min[0]+1), resample=Image.BICUBIC)
     target_np[bbox_target_min[0]:bbox_target_max[0]+1, bbox_target_min[1]:bbox_target_max[1]+1, :] = np.array(source_content)
     return Image.fromarray(target_np)
-    
+
 def load_image_list_from_mvdiffusion(mvdiffusion_path, front_from_pil_or_path=None):
     import os
     image_list = []
