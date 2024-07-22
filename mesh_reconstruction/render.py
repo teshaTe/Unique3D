@@ -12,12 +12,13 @@ def _warmup(glctx, device=None):
     tri = tensor([[0, 1, 2]], dtype=torch.int32)
     dr.rasterize(glctx, pos, tri, resolution=[256, 256])
 
-glctx = dr.RasterizeGLContext(output_db=False, device="cuda")
+# glctx = dr.RasterizeGLContext(output_db=False, device="cuda")
+glctx = dr.RasterizeCudaContext(device="cuda:0")
 
 class NormalsRenderer:
-    
-    _glctx:dr.RasterizeGLContext = None
-    
+
+    _glctx:dr.RasterizeCudaContext = None
+
     def __init__(
             self,
             mv: torch.Tensor, #C,4,4
@@ -79,7 +80,7 @@ def render_mesh_vertex_color(mesh, cameras, H, W, blur_radius=0.0, faces_per_pix
             mesh = mesh.extend(len(cameras))
         else:
             raise NotImplementedError()
-    
+
     # render requires everything in float16 or float32
     input_dtype = dtype
     blend_params = BlendParams(1e-4, 1e-4, bkgd)
@@ -118,7 +119,7 @@ class Pytorch3DNormalsRenderer: # 100 times slower!!!
         self.cameras = cameras.to(device)
         self._image_size = image_size
         self.device = device
-    
+
     def render(self,
             vertices: torch.Tensor, #V,3 float
             normals: torch.Tensor, #V,3 float   in [-1, 1]
@@ -126,7 +127,7 @@ class Pytorch3DNormalsRenderer: # 100 times slower!!!
             ) ->torch.Tensor: #C,H,W,4
         mesh = Meshes(verts=[vertices], faces=[faces], textures=TexturesVertex(verts_features=[(normals + 1) / 2])).to(self.device)
         return render_mesh_vertex_color(mesh, self.cameras, self._image_size[0], self._image_size[1], device=self.device)
-    
+
 def save_tensor_to_img(tensor, save_dir):
     from PIL import Image
     import numpy as np
@@ -149,15 +150,15 @@ if __name__ == "__main__":
     vertices = torch.tensor([[0,0,0],[0,0,1],[0,1,0],[1,0,0]], device="cuda", dtype=torch.float32)
     normals = torch.tensor([[-1,-1,-1],[1,-1,-1],[-1,-1,1],[-1,1,-1]], device="cuda", dtype=torch.float32)
     faces = torch.tensor([[0,1,2],[0,1,3],[0,2,3],[1,2,3]], device="cuda", dtype=torch.long)
-    
+
     import time
     t0 = time.time()
     r1 = renderer1.render(vertices, normals, faces)
     print("time r1:", time.time() - t0)
-    
+
     t0 = time.time()
     r2 = renderer2.render(vertices, normals, faces)
     print("time r2:", time.time() - t0)
-    
+
     for i in range(4):
         print((r1[i]-r2[i]).abs().mean(), (r1[i]+r2[i]).abs().mean())
