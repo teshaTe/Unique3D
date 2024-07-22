@@ -12,7 +12,7 @@ import torch
 
 torch.set_float32_matmul_precision('medium')
 torch.backends.cuda.matmul.allow_tf32 = True
-torch.set_grad_enabled(False)
+torch.set_grad_enabled(True)
 
 from app.gradio_3dgen import generate3dv2
 from app.all_models import model_zoo
